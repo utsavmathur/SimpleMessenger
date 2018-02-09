@@ -1,7 +1,13 @@
 package edu.buffalo.cse.cse486586.simplemessenger;
 
+import java.io.BufferedReader;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -13,6 +19,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Message;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -20,6 +27,7 @@ import android.view.View;
 import android.view.View.OnKeyListener;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 /**
  * SimpleMessengerActivity creates an Activity (i.e., a screen) that has an input box and a display
@@ -151,7 +159,31 @@ public class SimpleMessengerActivity extends Activity {
         @Override
         protected Void doInBackground(ServerSocket... sockets) {
             ServerSocket serverSocket = sockets[0];
-            
+            Socket socket= null;
+            DataInputStream in= null;
+            try {
+                while(true) {
+                    socket = serverSocket.accept();
+                    in = new DataInputStream(socket.getInputStream());
+                    String line = "";
+                    try {
+                        line = in.readUTF();
+                        publishProgress(line);
+                        //line = in.readUTF();
+                    } catch (IOException i) {
+                        System.out.println(i);
+                    }
+                    in.close();
+                    socket.close();
+                }
+
+            }
+            catch(IOException i){
+                System.out.println(i);
+            }
+
+
+            //Log.i("socket 0",sockets[0].toString());
             /*
              * TODO: Fill in your server code that receives messages and passes them
              * to onProgressUpdate().
@@ -213,10 +245,17 @@ public class SimpleMessengerActivity extends Activity {
                         Integer.parseInt(remotePort));
                 
                 String msgToSend = msgs[0];
+                DataOutputStream out = new DataOutputStream(socket.getOutputStream());
+                try{
+                    out.writeUTF(msgToSend);
+                }
+                catch (IOException i){
+                    System.out.println(i);
+                }
                 /*
                  * TODO: Fill in your client code that sends out a message.
                  */
-                socket.close();
+                //socket.close();
             } catch (UnknownHostException e) {
                 Log.e(TAG, "ClientTask UnknownHostException");
             } catch (IOException e) {
